@@ -1,3 +1,8 @@
+0.1.2 (2020-01-09)
+==================
+
+- join: retry to get token, if it is missing (10 times, 10 seconds between retries)
+
 0.1.1 (2020-01-09)
 ==================
 

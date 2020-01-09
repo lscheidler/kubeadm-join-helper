@@ -46,6 +46,12 @@ module Kubeadm
           def get_token
             key = File.join( @bucket_prefix, @cluster + ".json" )
             object = @bucket.object(key)
+            10.times do |x|
+              break if object.exists?
+
+              puts "No token found at #{key}. Retry in 10 seconds. (#{x+1}/10)"
+              sleep 10
+            end
             @token_data = JSON::parse(object.get.body.read)
           end
     
