@@ -21,6 +21,7 @@ require 'ostruct'
 require 'stringio'
 
 require 'plugin'
+require 'aws_imds'
 
 require_relative 'common'
 
@@ -48,7 +49,7 @@ module Kubeadm
             @token_data = JSON::parse(object.get.body.read)
           end
     
-          # decrypt artifact with ruby gpgme version > 1.0.8
+          # decrypt token with ruby gpgme version > 1.0.8
           def decrypt_token
             crypto = GPGME::Crypto.new pinentry_mode: GPGME::PINENTRY_MODE_LOOPBACK, password: @gpg_passphrases[@token_data["id"]]
     
@@ -57,7 +58,7 @@ module Kubeadm
 
           def run_join
             cmd = @token_cmd.split(' ')
-            if (nodename=get_metadata(['meta-data', 'instance-id']))
+            if (nodename=AwsImds.meta_data.instance_id)
               cmd += ['--node-name', nodename]
             end
             Execute::execute cmd, print_cmd: true, print_lines: true

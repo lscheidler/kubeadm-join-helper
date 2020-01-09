@@ -3,6 +3,7 @@ source 'https://rubygems.org'
 # Specify your gem's dependencies in kubeadm-join-helper.gemspec
 gemspec
 
+gem 'aws_imds', '~> 0.1.0', git: 'https://github.com/lscheidler/aws_imds'
 gem 'execute', '~> 0.1.1', git: 'https://github.com/lscheidler/ruby-execute', branch: 'master'
 gem 'overlay_config', '~> 0.1.3', git: 'https://github.com/lscheidler/ruby-overlay_config', branch: 'master'
 gem 'plugin_manager', '~> 0.2.0', git: 'https://github.com/lscheidler/ruby-plugin_manager', branch: 'master'
