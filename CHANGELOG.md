@@ -1,3 +1,8 @@
+0.1.3 (2020-01-23)
+==================
+
+- use kubeadm config feature, so we can set additional configurations
+
 0.1.2 (2020-01-09)
 ==================
 

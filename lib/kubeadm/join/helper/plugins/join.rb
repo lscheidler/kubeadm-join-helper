@@ -19,6 +19,8 @@ require 'json'
 require 'net/http'
 require 'ostruct'
 require 'stringio'
+require 'tempfile'
+require 'yaml'
 
 require 'plugin'
 require 'aws_imds'
@@ -30,6 +32,13 @@ module Kubeadm
     module Helper
       module Plugins
         class Join < Common
+          # @!macro [attach] plugin_argument
+          #   @!attribute $1
+          #     $2
+          plugin_argument :node_name, description: 'node name', optional: true
+          plugin_argument :use_instance_id, description: 'use instance id from aws meta data service as node name', optional: true, default: false
+          plugin_argument :additional_config, description: 'additional config, which is going to be merged with join config', optional: true
+
           # @raise Aws::S3::Errors::NoSuchKey
           # @raise GPGME::Error::DecryptFailed
           def after_initialize
@@ -59,15 +68,47 @@ module Kubeadm
           def decrypt_token
             crypto = GPGME::Crypto.new pinentry_mode: GPGME::PINENTRY_MODE_LOOPBACK, password: @gpg_passphrases[@token_data["id"]]
     
-            @token_cmd = crypto.decrypt(@token_data["data"]).read
+            @data = JSON::parse(crypto.decrypt(@token_data["data"]).read)
           end
 
           def run_join
-            cmd = @token_cmd.split(' ')
-            if (nodename=AwsImds.meta_data.instance_id)
-              cmd += ['--node-name', nodename]
-            end
-            Execute::execute cmd, print_cmd: true, print_lines: true
+            cmd = case @data['type']
+                  when 'config'
+                    config = {
+                               'apiVersion' => 'kubeadm.k8s.io/v1beta2',
+                               'kind' => 'JoinConfiguration',
+                               'discovery' => {
+                                 'bootstrapToken' => {
+                                   'token' => @data['token'],
+                                   'apiServerEndpoint' => @data['apiServerEndpoint'],
+                                   'caCertHashes' => @data['caCertHashes']
+                                 }
+                               }
+                             }
+
+                    if @additional_config
+                      additional_config = YAML::load_file(@additional_config)
+                      config.merge!(additional_config)
+                    end
+
+                    tempfile = Tempfile.new ['kubeadm', '.yml']
+                    tempfile.print(YAML.dump(config))
+                    tempfile.close
+
+                    cmd = ['kubeadm', 'join', '--config', tempfile.path]
+                    if @use_instance_id and (nodename=AwsImds.meta_data.instance_id)
+                      cmd += ['--node-name', nodename]
+                    end
+                    cmd
+                  else
+                    cmd = @data['joinCommand'].split(' ')
+                    if @use_instance_id and (nodename=AwsImds.meta_data.instance_id)
+                      cmd += ['--node-name', nodename]
+                    end
+                    cmd
+                  end
+
+            Execute::execute cmd, dryrun: @dryrun, print_cmd: true, print_lines: true
           end
         end
       end

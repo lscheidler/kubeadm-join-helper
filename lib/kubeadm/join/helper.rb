@@ -33,9 +33,9 @@ module Kubeadm
           @pm = PluginManager.instance
           case @action
           when :join
-            join = @pm['Kubeadm::Join::Helper::Plugins::Join'].new @config
+            @pm['Kubeadm::Join::Helper::Plugins::Join'].new @config
           when :update
-            update = @pm['Kubeadm::Join::Helper::Plugins::Update'].new @config
+            @pm['Kubeadm::Join::Helper::Plugins::Update'].new @config
           end
         end
 
@@ -49,28 +49,44 @@ module Kubeadm
 
         def parse_arguments
           @options = OptionParser.new do |opts|
+            opts.on('--additional-config STRING', 'set additional config, which is going to be merged with join config') do |file|
+              @config.additional_config = file
+            end
+
+            opts.on('--bucket-name STRING', 'set bucket name to use for upload') do |bucket_name|
+              @config.bucket_name = bucket_name
+            end
+
+            opts.on('--bucket-region STRING', 'set bucket region', "default: #{@config.bucket_region}") do |bucket_region|
+              @config.bucket_region = bucket_region
+            end
+
+            opts.on('--bucket-prefix STRING', 'set bucket prefix', "default: #{@config.bucket_prefix}") do |bucket_prefix|
+              @config.bucket_prefix = bucket_prefix
+            end
+
             opts.on('--cluster NAME', 'set cluster name') do |cluster|
               @config.cluster = cluster
             end
 
-            opts.on('--bucket-name NAME', 'set bucket name to use for upload') do |bucket_name|
-              @config.bucket_name = bucket_name
-            end
-
-            opts.on('--bucket-region NAME', 'set bucket region', "default: #{@config.bucket_region}") do |bucket_region|
-              @config.bucket_region = bucket_region
-            end
-
-            opts.on('--bucket-prefix PREFIX', 'set bucket prefix', "default: #{@config.bucket_prefix}") do |bucket_prefix|
-              @config.bucket_prefix = bucket_prefix
+            opts.on('--dryrun', 'dry run') do
+              @config.dryrun = true
             end
 
             opts.on('-j', '--join', 'get token from s3 and run kubeadm join') do
               @action = :join
             end
 
+            opts.on('-n', '--node-name STRING', 'set node name') do |name|
+              @config.node_name = name
+            end
+
             opts.on('-u', '--update', 'create new token and upload to s3') do
               @action = :update
+            end
+
+            opts.on('--use-instance-id', 'use instance id from aws meta data service as node name') do
+              @config.use_instance_id = true
             end
           end
           @options.parse!

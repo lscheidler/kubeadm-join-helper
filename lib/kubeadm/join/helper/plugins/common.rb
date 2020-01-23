@@ -36,6 +36,8 @@ module Kubeadm
     
           plugin_argument :access_key_id, description: 'aws access key id', optional: true
           plugin_argument :secret_access_key, description: 'aws secret access key', optional: true
+
+          plugin_argument :dryrun, description: 'dryrun', optional: true
     
           # @raise [Aws::Sigv4::Errors::MissingCredentialsError]
           def after_initialize
