@@ -96,14 +96,14 @@ module Kubeadm
                     tempfile.close
 
                     cmd = ['kubeadm', 'join', '--config', tempfile.path]
-                    if @use_instance_id and (nodename=AwsImds.meta_data.instance_id)
-                      cmd += ['--node-name', nodename]
+                    if @node_name or (@use_instance_id and (@node_name=AwsImds.meta_data.instance_id))
+                      cmd += ['--node-name', @node_name]
                     end
                     cmd
                   else
                     cmd = @data['joinCommand'].split(' ')
-                    if @use_instance_id and (nodename=AwsImds.meta_data.instance_id)
-                      cmd += ['--node-name', nodename]
+                    if @node_name or (@use_instance_id and (@node_name=AwsImds.meta_data.instance_id))
+                      cmd += ['--node-name', @node_name]
                     end
                     cmd
                   end
