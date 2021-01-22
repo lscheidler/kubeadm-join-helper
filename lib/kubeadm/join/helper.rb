@@ -82,7 +82,7 @@ module Kubeadm
             end
 
             opts.on('-r', '--retries INTEGER', '[join] number of retries to get token') do |retries|
-              @config.retries = retries
+              @config.retries = retries.to_i
             end
 
             opts.on('-u', '--update', 'create new token and upload to s3') do
@@ -94,7 +94,7 @@ module Kubeadm
             end
 
             opts.on('-w', '--wait SECONDS', '[join] wait for SECOND before next try') do |wait|
-              @config.wait = wait
+              @config.wait = wait.to_i
             end
           end
           @options.parse!
