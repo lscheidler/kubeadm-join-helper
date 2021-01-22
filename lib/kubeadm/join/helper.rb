@@ -81,12 +81,20 @@ module Kubeadm
               @config.node_name = name
             end
 
+            opts.on('-r', '--retries INTEGER', '[join] number of retries to get token') do |retries|
+              @config.retries = retries
+            end
+
             opts.on('-u', '--update', 'create new token and upload to s3') do
               @action = :update
             end
 
             opts.on('--use-instance-id', 'use instance id from aws meta data service as node name') do
               @config.use_instance_id = true
+            end
+
+            opts.on('-w', '--wait SECONDS', '[join] wait for SECOND before next try') do |wait|
+              @config.wait = wait
             end
           end
           @options.parse!

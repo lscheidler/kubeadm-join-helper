@@ -38,6 +38,8 @@ module Kubeadm
           plugin_argument :node_name, description: 'node name', optional: true
           plugin_argument :use_instance_id, description: 'use instance id from aws meta data service as node name', optional: true, default: false
           plugin_argument :additional_config, description: 'additional config, which is going to be merged with join config', optional: true
+          plugin_argument :retries, description: 'amount of retries to check, if token exists', optional: true, default: 10
+          plugin_argument :wait, description: 'wait time in seconds, before retrying', optional: true, default: 10
 
           # @raise Aws::S3::Errors::NoSuchKey
           # @raise GPGME::Error::DecryptFailed
@@ -55,11 +57,11 @@ module Kubeadm
           def get_token
             key = File.join( @bucket_prefix, @cluster + ".json" )
             object = @bucket.object(key)
-            10.times do |x|
+            @retries.times do |x|
               break if object.exists?
 
-              puts "No token found at #{key}. Retry in 10 seconds. (#{x+1}/10)"
-              sleep 10
+              puts "No token found at #{key}. Retry in 10 seconds. (#{x+1}/#{@retries})"
+              sleep @wait
             end
             @token_data = JSON::parse(object.get.body.read)
           end

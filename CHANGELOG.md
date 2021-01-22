@@ -1,3 +1,8 @@
+0.1.5 (2021-01-22)
+==================
+
+- added --retries <amount> and --wait <seconds> arguments for join operation for easy adjustments, if necessary
+
 0.1.4 (2020-04-02)
 ==================
 
